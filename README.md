@@ -1,5 +1,13 @@
 # Programming Fonts
 
+## How to install?
+
+```bash
+  cd fonts
+  chmod +x install.sh
+  ./install.sh 
+```
+
 > Color theme is Github Dark (Visual Studio Code)
 
 ### Anonymous Pro
