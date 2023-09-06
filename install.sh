@@ -4,8 +4,8 @@
 FONT_FOLDER=.
 
 # Loop through each zip file in the font folder
-mkdir /tmp/fonts
-for font_zip in "$FONT_FOLDER"/*.zip
+mkdir -p /tmp/fonts
+find "$FONT_FOLDER" -maxdepth 1 -type f -name "*.zip" | while read -r font_zip
 do
     file_name_without_extension="${font_zip##*/}"
     file_name_without_extension="${file_name_without_extension%.*}"
@@ -16,17 +16,25 @@ done
 # Find all font files in the specified folder and its subfolders
 FONT_FILES=$(find "/tmp/fonts" -type f \( -iname \*.ttf -o -iname \*.otf \) )
 
-for font_file in $FONT_FILES
+while IFS= read -r font_file
 do
-    # Move the font file to the system fonts directory
-    sudo mv "$font_file" /usr/share/fonts/truetype/"$(basename "$font_file")"
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # Move the font file to the system fonts directory
+        sudo mv "$font_file" "/Library/Fonts/$(basename "$font_file")"
+        # Set the correct file permissions for the font
+        sudo chmod 644 "/Library/Fonts/$(basename "$font_file")"
+    else
+        # Move the font file to the system fonts directory
+        sudo mv "$font_file" "/usr/share/fonts/truetype/$(basename "$font_file")"
+        # Set the correct file permissions for the font
+        sudo chmod 644 "/usr/share/fonts/truetype/$(basename "$font_file")"
+    fi
+done <<< "$FONT_FILES"
 
-    # Set the correct file permissions for the font
-    sudo chmod 644 /usr/share/fonts/truetype/"$(basename "$font_file")"
-done
-
-# rm -rf /tmp/fonts
+rm -rf /tmp/fonts
 # Update the font cache
-sudo fc-cache -f -v
+if [[ "$OSTYPE" != "darwin"* ]]; then
+  sudo fc-cache -f -v
+fi
 
 echo "Fonts installed successfully!"
